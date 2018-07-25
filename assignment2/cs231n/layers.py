@@ -456,12 +456,17 @@ def conv_backward_naive(dout, cache):
     db = np.sum(dout, axis=(0,2,3))
     #compute dy
     dy = np.zeros((N,C,H+2*pad,W+2*pad))
+    
+#     print("HH = %d, WW = %d" % (HH, WW))
+#     print("H_ = %d, W_ = %d" % (H_, W_))
+#     print("H = %d, W = %d, pad = %d, stride = %d" % (H, W, pad, stride))
+    
     for i in range(N):
         for t in range(C):
             for r in range(H+2*pad):
                 for s in range(W+2*pad):
-                    k_range = np.array(range(max(0, (r+1-HH)//stride), min(H_, r//stride+1))).astype('int64')
-                    l_range = np.array(range(max(0, (s+1-WW)//stride), min(W_, s//stride+1))).astype('int64')
+                    k_range = np.array(range(max(0, int((r+1-HH-0.1)//stride+1)), min(H_, r//stride+1))).astype('int64')
+                    l_range = np.array(range(max(0, int((s+1-WW-0.1)//stride+1)), min(W_, s//stride+1))).astype('int64')
                     
                     
 #                     print("k_range = %s" % str(k_range))
@@ -470,9 +475,10 @@ def conv_backward_naive(dout, cache):
                         continue
 #                     print("k_range = %s" % str(k_range))
 #                     print("l_range = %s" % str(l_range))
+#                     print("r = %d, s = %d, t = %d" % (r,s,t))
 #                     print("dout.shape = %s" % str(dout.shape))
 #                     print("w.shape = %s" % str(w.shape))
-#                     print("left_shape = %s" % str(dout[i,:,k_range][:,:,l_range].shape))
+#                     print("left_shape = %s" % str(dout[i][:,k_range][:,:,l_range].shape))
 #                     print("rigth_shape = %s" % str(w[:,t,r-k_range*stride][:,:,s-l_range*stride].shape))
                     
                     dy[i][t][r][s] = np.sum(dout[i][:,k_range][:,:,l_range] * w[:,t,r-k_range*stride][:,:,s-l_range*stride])
@@ -544,15 +550,22 @@ def max_pool_backward_naive(dout, cache):
     C = x.shape[1]
     H = x.shape[2]
     W = x.shape[3]
+    stride = pool_param['stride']
+    HH = pool_param['pool_height']
+    WW = pool_param['pool_width']
+    H_ = (H-HH)//stride + 1
+    W_ = (W-WW)//stride + 1
     dx = np.zeros((N,C,H,W))
     for i in range(N):
         for j in range(C):
             for r in range(H):
                 for s in range(W):
-                    k_range = range(max(0, (r+1-HH)//stride), min(H_, r//stride+1))
-                    l_range = range(max(0, (s+1-WW)//stride), min(W_, s//stride+1))
-                    dw[i][j][r][s] = np.sum(dout[:,:,k_range][:,:,:,l_range] * 
-                                            , axis=(2,3))
+                    for k in range(max(0, int((r+1-HH-0.1)//stride+1)), min(H_, r//stride+1)):
+                        for l in range(max(0, int((s+1-WW-0.1)//stride+1)), min(W_, s//stride+1)):
+                            index = np.unravel_index(np.argmax(\
+                                x[i,j,range(k*stride, k*stride+HH)][:, range(l*stride, l*stride+WW)]),(HH, WW))
+                            if index == (r-k*stride, s-l*stride):
+                                dx[i][j][r][s] += dout[i,j,k,l]
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
