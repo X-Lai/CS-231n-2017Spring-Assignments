@@ -1,5 +1,7 @@
 assignment1/cs231n/datasets/cifar-10-batches-py/
 assignment2/cs231n/datasets/cifar-10-batches-py/
+spring1718_assignment2_v2/cs231n/datasets/cifar-10-batches-py/
+spring1718_assignment2_v2/cs231n/datasets/cifar-10-python.tar.gz
 mnist_png.tar.gz
 mnist_png/
 .gitignore.swp
